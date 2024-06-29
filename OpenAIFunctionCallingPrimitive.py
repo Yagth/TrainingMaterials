@@ -1,10 +1,6 @@
 import os
 import openai
 import json
-from dotenv import load_dotenv, find_dotenv
-
-_ = load_dotenv(find_dotenv()) # read local .env file
-openai.api_key = os.environ['OPENAI_API_KEY']
 
 # Example dummy function hard coded to return the same weather
 # In production, this could be your backend API or an external API
