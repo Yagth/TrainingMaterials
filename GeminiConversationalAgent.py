@@ -8,6 +8,7 @@ from langchain.agents.format_scratchpad import format_to_openai_functions
 from langchain.schema.agent import AgentFinish
 
 import requests
+import wikipedia
 from pydantic.v1 import BaseModel, Field
 import datetime
 
@@ -50,7 +51,18 @@ def get_current_temperature(latitude: float, longitude: float) -> dict:
     
     return f'The current temperature is {current_temperature}°C'
 
-tools = [get_current_temperature]
+@tool
+def get_wikipedia_summary(topic: str) -> str:
+    """Fetch a summary of the given Wikipedia topic."""
+    try:
+        page = wikipedia.page(topic)
+        return page.summary
+    except wikipedia.exceptions.PageError:
+        return f"No Wikipedia page found for the topic: {topic}"
+    except wikipedia.exceptions.DisambiguationError as e:
+        return f"Disambiguation page found. Please be more specific: {e.options}"
+    
+tools = [get_current_temperature, get_wikipedia_summary]
 functions = [format_tool_to_openai_function(f) for f in tools]
 
 model = ChatGoogleGenerativeAI(
@@ -65,7 +77,7 @@ prompt  = ChatPromptTemplate.from_messages([
 ])
 
 chain = prompt | model | OpenAIFunctionsAgentOutputParser()
-result = chain.invoke({"input": "what is the weather is sf?"})
+result = chain.invoke({"input": "Which continent is Ethiopia located in?"})
 print(result)
 
 
