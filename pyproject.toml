@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "langchainagentintro"
+version = "0.1.0"
+description = ""
+authors = ["Yab <yabuman46@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langchain-google-genai = "^1.0.7"
+langchain = "^0.2.6"
+pydantic = "^2.7.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
