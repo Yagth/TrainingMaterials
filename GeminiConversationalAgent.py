@@ -2,6 +2,8 @@ from langchain.tools import tool
 from langchain.prompts import ChatPromptTemplate
 from langchain.tools.render import format_tool_to_openai_function
 from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
+from langchain_core.utils.function_calling import convert_to_openai_function
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import MessagesPlaceholder
 from langchain.agents.format_scratchpad import format_to_openai_functions
@@ -10,11 +12,11 @@ from langchain.schema.agent import AgentFinish
 import requests
 from pydantic.v1 import BaseModel, Field
 import datetime
+import wikipediaapi  # Import wikipediaapi
 
 GOOGLE_API_KEY = 'AIzaSyCCHV3t3O5gDkpHwxHnHQLUMXrvPhFwgqQ'
 
-
-# Define the input schema
+# Define the input schema for weather
 class OpenMeteoInput(BaseModel):
     latitude: float = Field(..., description="Latitude of the location to fetch weather data for")
     longitude: float = Field(..., description="Longitude of the location to fetch weather data for")
@@ -50,45 +52,44 @@ def get_current_temperature(latitude: float, longitude: float) -> dict:
     
     return f'The current temperature is {current_temperature}°C'
 
-tools = [get_current_temperature]
-functions = [format_tool_to_openai_function(f) for f in tools]
+# Define the input schema for Wikipedia search
+class WikipediaSearchInput(BaseModel):
+    query: str = Field(..., description="The search query for Wikipedia")
 
+@tool(args_schema=WikipediaSearchInput)
+def search_wikipedia(query: str) -> dict:
+    """Search Wikipedia for a given query and return the summary."""
+    wiki_wiki = wikipediaapi.Wikipedia('en')
+    page = wiki_wiki.page(query)
+    
+    if not page.exists():
+        return {"result": "No page found for the query."}
+    
+    summary = page.summary[:1000]  # Limiting summary to first 1000 characters
+    return {"result": summary}
+
+# Add both tools
+tools = [get_current_temperature, search_wikipedia]
+functions = [convert_to_openai_function(f) for f in tools]
+
+# Setup the model
 model = ChatGoogleGenerativeAI(
     model="gemini-1.5-pro-latest",
     google_api_key=GOOGLE_API_KEY,
     temperature=0.2,
 ).bind(functions=functions)
 
+# Setup the prompt
 prompt  = ChatPromptTemplate.from_messages([
     ("system", "You are helpful but sassy assistant"),
     ("user", "{input}"),
 ])
 
+# Setup the chain
 chain = prompt | model | OpenAIFunctionsAgentOutputParser()
+
 result = chain.invoke({"input": "what is the weather is sf?"})
 print(result)
 
-
-# prompt = ChatPromptTemplate.from_messages([
-#     ("system", "You are helpful but sassy assistant"),
-#     ("user", "{input}"),
-#     MessagesPlaceholder(variable_name="agent_scratchpad")
-# ])
-# chain = prompt | model | OpenAIFunctionsAgentOutputParser()
-#
-# result1 = chain.invoke({
-#     "input": "what is the weather is san fransico located at 37.7749° N, 122.4194° W?",
-#     "agent_scratchpad": []
-# })
-#
-# print(result1)
-# print(type(result1))
-#
-# observation = get_current_temperature(result1.tool_input)
-# print(observation)
-
-# result2 = chain.invoke({
-#     "input": "what is the weather is sf?", 
-#     "agent_scratchpad": format_to_openai_functions([(result1, observation)])
-# })
-# print(result2)
+result_wiki = chain.invoke("tell me about Python programming language")
+print(result_wiki)
