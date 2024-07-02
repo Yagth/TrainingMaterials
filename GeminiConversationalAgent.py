@@ -8,6 +8,8 @@ from langchain.agents.format_scratchpad import format_to_openai_functions
 from langchain.schema.agent import AgentFinish
 
 import requests
+import wikipedia
+import wikipediaapi
 from pydantic.v1 import BaseModel, Field
 import datetime
 
@@ -50,45 +52,83 @@ def get_current_temperature(latitude: float, longitude: float) -> dict:
     
     return f'The current temperature is {current_temperature}°C'
 
-tools = [get_current_temperature]
+@tool
+def get_wikipedia_summary(title: str) -> str:
+    """Fetch a summary of the given Wikipedia title."""
+    try:
+        # Provide a custom user-agent to avoid issues with Wikipedia API
+        # wiki_wiki = wikipediaapi.Wikipedia('en', user_agent="LangchainAssistant/1.0")
+        page = wikipedia.page(title)
+        if not page.exists():
+            return "Page does not exist"
+        return page.summary
+    except wikipedia.exceptions.PageError:
+        return f"No Wikipedia page found for the title: {title}"
+    except wikipedia.exceptions.DisambiguationError as e:
+        return f"Disambiguation page found. Please be more specific: {e.options}"
+
+# Add the tools
+tools = [get_current_temperature, get_wikipedia_summary]
 functions = [format_tool_to_openai_function(f) for f in tools]
 
+# Initialize the model with updated functions
 model = ChatGoogleGenerativeAI(
     model="gemini-1.5-pro-latest",
     google_api_key=GOOGLE_API_KEY,
     temperature=0.2,
 ).bind(functions=functions)
 
-prompt  = ChatPromptTemplate.from_messages([
-    ("system", "You are helpful but sassy assistant"),
+# Define the chain with updated functions
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful but sassy assistant"),
     ("user", "{input}"),
+    MessagesPlaceholder(variable_name="agent_scratchpad")
 ])
-
 chain = prompt | model | OpenAIFunctionsAgentOutputParser()
-result = chain.invoke({"input": "what is the weather is sf?"})
-print(result)
 
+# Function to process the LLM's response and invoke the correct tool
+def process_and_invoke(response):
+    if isinstance(response, AgentFinish):
+        print("Response from LLM:", response.return_values['output'])
+        return response.return_values['output']
+    else:
+        tool_name = response.tool
+        tool_input = response.tool_input
+        
+        if tool_name == 'get_current_temperature':
+            observation = get_current_temperature(tool_input.latitude, tool_input.longitude)
+        elif tool_name == 'get_wikipedia_summary':
+            observation = get_wikipedia_summary(tool_input)
+        else:
+            raise ValueError(f"Unknown tool name: {tool_name}")
 
-# prompt = ChatPromptTemplate.from_messages([
-#     ("system", "You are helpful but sassy assistant"),
-#     ("user", "{input}"),
-#     MessagesPlaceholder(variable_name="agent_scratchpad")
-# ])
-# chain = prompt | model | OpenAIFunctionsAgentOutputParser()
-#
-# result1 = chain.invoke({
-#     "input": "what is the weather is san fransico located at 37.7749° N, 122.4194° W?",
+    # Pass the result back to the LLM
+    result = chain.invoke({
+        "input": f"The result of the function is: {observation}",
+        "agent_scratchpad": format_to_openai_functions([(response, observation)])
+    })
+    
+    if isinstance(result, AgentFinish):
+        return result.return_values['output']
+    else:
+        return result.get('output', '')
+
+# Example usage for Wikipedia search
+result1 = chain.invoke({
+    "input": "Tell me about the Golden Gate Bridge",
+    "agent_scratchpad": []
+})
+
+# Manually call the identified function and get the result
+observation = process_and_invoke(result1)
+print(observation)
+
+# Example usage for current temperature
+# result2 = chain.invoke({
+#     "input": "What is the weather in San Francisco located at 37.7749° N, 122.4194° W?",
 #     "agent_scratchpad": []
 # })
-#
-# print(result1)
-# print(type(result1))
-#
-# observation = get_current_temperature(result1.tool_input)
-# print(observation)
 
-# result2 = chain.invoke({
-#     "input": "what is the weather is sf?", 
-#     "agent_scratchpad": format_to_openai_functions([(result1, observation)])
-# })
-# print(result2)
+# # Manually call the identified function and get the result
+# observation_temp = process_and_invoke(result2)
+# print(observation_temp)
