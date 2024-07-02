@@ -10,7 +10,7 @@ from langchain.schema.agent import AgentFinish
 import requests
 from pydantic.v1 import BaseModel, Field
 import datetime
-
+import wikipediaapi #pip install wikipedia-api
 GOOGLE_API_KEY = 'AIzaSyCCHV3t3O5gDkpHwxHnHQLUMXrvPhFwgqQ'
 
 
@@ -49,8 +49,20 @@ def get_current_temperature(latitude: float, longitude: float) -> dict:
     current_temperature = temperature_list[closest_time_index]
     
     return f'The current temperature is {current_temperature}°C'
-
-tools = [get_current_temperature]
+class WikipediaInput(BaseModel):
+    query: str = Field(..., description="Query to search on Wikipedia")
+@tool(args_schema=WikipediaInput)
+def search_wikipedia(query: str) -> str:
+    """Search Wikipedia for a given query."""
+    
+    wiki_wiki = wikipediaapi.Wikipedia('en')
+    page = wiki_wiki.page(query)
+    
+    if not page.exists():
+        return f"No Wikipedia page found for '{query}'"
+    
+    return page.summary
+tools = [get_current_temperature, search_wikipedia]
 functions = [format_tool_to_openai_function(f) for f in tools]
 
 model = ChatGoogleGenerativeAI(
@@ -65,7 +77,16 @@ prompt  = ChatPromptTemplate.from_messages([
 ])
 
 chain = prompt | model | OpenAIFunctionsAgentOutputParser()
-result = chain.invoke({"input": "what is the weather is sf?"})
+response = chain.invoke({"input": "what is the weather is sf?"})
+action = response['action']
+arguments = response['arguments', {}]
+if action == "get_current_temperature":
+    second_input = get_current_temperature(**arguments)
+elif action == "search_wikipedia":
+    second_input = search_wikipedia(**arguments)
+else:
+    second_input = "Unknown action"
+result = chain.invoke({"input": second_input})
 print(result)
 
 
