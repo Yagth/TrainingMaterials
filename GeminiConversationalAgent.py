@@ -43,7 +43,7 @@ def get_current_temperature(latitude: float, longitude: float) -> dict:
         raise Exception(f"API Request failed with status code: {response.status_code}")
 
     current_utc_time = datetime.datetime.utcnow()
-    time_list = [datetime.datetime.fromisoformat(time_str.replace('Z', '+00:00')) for time_str in results['hourly']['time']]
+    time_list = [daztetime.datetime.fromisoformat(time_str.replace('Z', '+00:00')) for time_str in results['hourly']['time']]
     temperature_list = results['hourly']['temperature_2m']
     
     closest_time_index = min(range(len(time_list)), key=lambda i: abs(time_list[i] - current_utc_time))
@@ -77,30 +77,37 @@ prompt  = ChatPromptTemplate.from_messages([
 ])
 
 chain = prompt | model | OpenAIFunctionsAgentOutputParser()
-result = chain.invoke({"input": "Which continent is Ethiopia located in?"})
-print(result)
 
+def get_answer(question):
+    response = chain.invoke({"input": question})
+    
+    if isinstance(response, AgentFinish):
+        return response.return_values['output']
+    else:
+        action = response.tool
+        arguments = response.tool_input['topic']
+        if action == "get_current_temperature":
+            second_input = get_current_temperature(arguments)
+        elif action == "get_wikipedia_summary":
+            second_input = get_wikipedia_summary(arguments)
+        else:
+            second_input = "Unknown action"
+        
+        result = chain.invoke({"input": second_input})
+        if isinstance(result, AgentFinish):
+            return result.return_values['output']
+        else:
+            return result.get('output', '')
+    
 
-# prompt = ChatPromptTemplate.from_messages([
-#     ("system", "You are helpful but sassy assistant"),
-#     ("user", "{input}"),
-#     MessagesPlaceholder(variable_name="agent_scratchpad")
-# ])
-# chain = prompt | model | OpenAIFunctionsAgentOutputParser()
-#
-# result1 = chain.invoke({
-#     "input": "what is the weather is san fransico located at 37.7749° N, 122.4194° W?",
-#     "agent_scratchpad": []
-# })
-#
-# print(result1)
-# print(type(result1))
-#
-# observation = get_current_temperature(result1.tool_input)
-# print(observation)
+question = "Who won the 2014 world cup?"
+answer = get_answer(question)
+print(answer)
 
-# result2 = chain.invoke({
-#     "input": "what is the weather is sf?", 
-#     "agent_scratchpad": format_to_openai_functions([(result1, observation)])
-# })
-# print(result2)
+question = "Which continent is Ethiopia located in?"
+answer = get_answer(question)
+print(answer)
+
+question = "Who is the current Ethiopian Prime Minister?"
+answer = get_answer(question)
+print(answer)
