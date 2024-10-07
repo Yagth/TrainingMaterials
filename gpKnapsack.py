@@ -6,11 +6,6 @@
 # selection pair
 # Run genetic algorithm
 
-# Some helper function that you might need are:
-# sort population by fitness
-# gnome to string
-# stats pritning function
-
 import time
 from functools import partial
 from typing import Callable, List, Optional, Tuple
@@ -19,7 +14,7 @@ from random import choices, randint, random, randrange
 
 from contextlib import contextmanager
 
-weight_limit = 200
+weight_limit = 3000
 
 Genome = List[int]
 Population = List[Genome]
@@ -222,11 +217,11 @@ print("----------")
 with timer():
     things = generate_things(32)
     population, generation = run_evolution(
-        partial(generate_population, size=10, genome_length=len(things)),
-        partial(fitness, things=things, weight_limit=weight_limit),
+        partial(generate_population, size=10, genome_length=len(second_example)),
+        partial(fitness, things=second_example, weight_limit=weight_limit),
         fitness_limit=1310,
         generation_limit=100,
     )
 
-sack = from_genome(population[0], things)
+sack = from_genome(population[0], second_example)
 print_things_stats(sack)
