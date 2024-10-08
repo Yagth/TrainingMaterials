@@ -1,13 +1,10 @@
-# Simple Genetic Algorithm on Python
-This project to show the genetic algorithm process in python
-
-Why python? cos I love it
-
-hate python? its your problem :P
+# Genetic Algorithm on Python
+This project implements Genetic Algorithms (GA) to solve three classic optimization problems: Job Shop Scheduling, N-Queens, and the Traveling Salesman Problem (TSP). Each of these problems is complex and involves finding an optimal or near-optimal solution through evolutionary techniques.
 
 ## Requirement
 ```
-pip install numpy
+pip install matplotlib
+pip install pyeasyga
 ```
 
 ## Explanation of Algorithm
