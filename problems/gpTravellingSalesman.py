@@ -15,16 +15,15 @@ from itertools import permutations
 
 Distances = Dict[Tuple[int,int],int]
 
-# City = namedtuple("City",("name", "x", "y"))
-# distances = {
-#     (1, 2): 10,
-#     (1, 3): 15,
-#     (1, 4): 20,
-#     (2, 3): 35,
-#     (2, 4): 25,
-#     (3, 4): 30
-# }
-# cities = [1,2,3,4]
+distances = {
+    (1, 2): 10,
+    (1, 3): 15,
+    (1, 4): 20,
+    (2, 3): 35,
+    (2, 4): 25,
+    (3, 4): 30
+}
+cities = [1,2,3,4]
 cities2 = [1,2,3,4,5,6,7,8,9,10]
 distances2 = {
     (1, 2): 100,  # Addis Ababa to Dire Dawa
@@ -139,6 +138,57 @@ def mutation(genome: Genome, num: int = 1, probability: float = 0.5) -> Genome:
             genome[index1] =val2
             genome[index2] =val1
     return genome
+
+def print_problem_description(cities: List[int]):
+    """
+    Prints descriptive information about the Travelling Salesman Problem.
+    
+    Args:
+        cities (List[int]): A list of city IDs (or names) involved in the problem.
+    """
+    num_cities = len(cities)
+    possible_combinations = math.factorial(num_cities)
+    
+    print("Travelling Salesman Problem:")
+    print(f"Number of Cities: {num_cities}")
+    print(f"Possible Combinations (Orderings of Cities): {possible_combinations}")
+    print(f"The goal is to find the shortest route visiting all cities exactly once.\n")
+
+
+def print_generation_info(generation: int, best_order: Genome, distances: Dict[Tuple[int, int], int]):
+    """
+    Prints the generation number and the best genome (route) with its corresponding distance.
+    
+    Args:
+        generation (int): The current generation number in the genetic algorithm.
+        best_order (Genome): The best order (route) of cities found so far.
+        distances (Dict[Tuple[int, int], int]): The distance dictionary containing the distances between city pairs.
+    """
+    total_distance = calculate_total_distance(best_order, distances)
+    
+    print(f"Generation: {generation}")
+    print(f"Best Route: {best_order}")
+    print(f"Total Distance: {total_distance}")
+    print("-" * 40)
+
+
+def print_final_result(best_order: Genome, generation: int, distances: Dict[Tuple[int, int], int]):
+    """
+    Prints the final result after running the genetic algorithm.
+    
+    Args:
+        best_order (Genome): The best order (route) of cities found by the genetic algorithm.
+        generation (int): The generation number at which the solution was found.
+        distances (Dict[Tuple[int, int], int]): The distance dictionary containing distances between city pairs.
+    """
+    total_distance = calculate_total_distance(best_order, distances)
+    
+    print("\nFinal Solution:")
+    print(f"Best Route: {best_order}")
+    print(f"Total Distance: {total_distance}")
+    print(f"Found in Generation: {generation}")
+    print(f"Out of Possible Combinations: {math.factorial(len(best_order))}")
+    print("=" * 40)
 def run_evolution(
     populate_func: PopulateFunc,
     fitness_func: FitnessFunc,
@@ -150,9 +200,6 @@ def run_evolution(
     # printer: Optional[PrinterFunc] = None,
 ) -> Tuple[Population, int]:
     population = populate_func()
-    for n in population:
-        distance = fitness_func(n)
-        print(f"Order123: {n} Distance: {distance}")
     for i in range(generation_limit):
         population = sort_population(population, fitness_func)
 
@@ -171,6 +218,8 @@ def run_evolution(
             next_generation += [offspring_a, offspring_b]
 
         population = next_generation
+        if i % 50 == 0:
+            print_generation_info(i, population[0], distances2)
 
     return population, i
 with timer():
@@ -179,7 +228,8 @@ with timer():
         fitness_func=partial(fitness, distances=distances2,cities=cities2),
         selection_func=selection_pair,
         crossover_func=single_point_crossover,
-        generation_limit=1000,
+        generation_limit=500,
     )
-
-print(f"{printer(population[0],distances2)},Generation no :{generation}, Possible Combination: {math.factorial(len(cities2))}")
+    print_final_result(population[0], generation, distances2)
+# print_problem_description(cities2)
+# print(f"{printer(population[0],distances2)},Generation no :{generation}, Possible Combination: {math.factorial(len(cities2))}")
