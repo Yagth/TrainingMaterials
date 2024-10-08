@@ -1,5 +1,3 @@
-Here’s a concise yet comprehensive README file in Markdown format for your project:
-
 
 # Genetic Algorithm Solver for Travelling Salesman, N-Queens, and Job Shop Scheduling
 
