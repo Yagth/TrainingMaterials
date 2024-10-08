@@ -17,130 +17,115 @@ Flowchart of GA
 
 > What is gen? its an individual in the population
 
-for simple explanation, I have an example :
-``` 
-gen = 'Hello World!'
-Population = ('Hello World!', 'Hello Wordd!', 'Hello Morth!')
+In the TSP, the population is a set of possible routes (tours) for visiting all the cities. This is similar to creating random strings in the text matching problem. Each individual in the population is a route, and each route's fitness is determined by the total distance covered.
 ```
-so how to create or initialize population? just create random gen and collect it save it in a variable. This is the code how to generate new random gen and collect it into a population. The datatype of population is a dict, for matlab just use struct. Before save it into a population we need to calculate the fitness between a gen with the target. If a gen is match with the target, the value of fitness is 100. So in the population we will a pair of gen and its fitness
+# Create a population of random routes (tours)
+def create_initial_population(cities, population_size):
+    population = []
+    for _ in range(population_size):
+        tour = cities.copy()
+        random.shuffle(tour)
+        distance = calculate_total_distance(tour)
+        population.append((distance, tour))
+    fittest = min(population, key=lambda x: x[0])
+    return population, fittest
 ```
-# generate new gen
-def create_gen(panjang_target):
-    random_number = np.random.randint(32, 126, size=panjang_target)
-    gen = ''.join([chr(i) for i in random_number])
-    return gen
-
-# calculate fitness of gen
-def calculate_fitness(gen, target, panjang_target):
-    fitness = 0
-    for i in range (panjang_target):
-        if gen[i:i+1] == target[i:i+1]:
-            fitness += 1
-    fitness = fitness / panjang_target * 100
-    return fitness
-
-# create population
-def create_population(target, max_population, panjang_target):
-    populasi = {}
-    for i in range(max_population):
-        gen = create_gen(panjang_target)
-        genfitness = calculate_fitness(gen, target, panjang_target)
-        populasi[gen] =  genfitness
-    return populasi
-```
+In this step, the population consists of random tours, and the fitness of each tour is the total distance of that tour. In the text GA, the fitness was based on the similarity to the target string.
 
 ### 2. Selection
 
 > Selection is a process to choose 2 best from a population
 
-How to choose it? just check the fitness of each gen and choose 2 biggest in a population
-
+The selection process remains almost the same, where two "parents" are selected from the population. In this case, we use tournament selection, picking two individuals based on their fitness (distance) and selecting the ones with the lowest distance:
 ```
-# selection process
-def selection(populasi):
-    pop = dict(populasi)
-    parent = {}
-    for i in range(2):
-        gen = max(pop, key=pop.get)
-        genfitness = pop[gen]
-        parent[gen] = genfitness
-        if i == 0:
-            del pop[gen]
-    return parent
+# Select two fittest routes from a tournament of random individuals
+def tournament_selection(population, selection_size):
+    return min(random.choices(population, k=selection_size), key=lambda x: x[0])
 ```
 
 ### 3. Crossover
 
-> crossover is doing sexual activities between 2 parent which choosen in selection process
+> In the TSP, crossover means combining two routes to create new offspring (routes). The idea is to take part of one parent route and combine it with part of the other parent's route, ensuring no
+city is repeated.
 
 In this code, crossover process is making process like this :
 ```
-parent1 = 'abcde12345'
-parent2 = '12345abcde'
-
-offspring1 = 'abcdeabcde'
-offspring2 = '1234512345'
+# Perform crossover between two parents to create two offspring
+def crossover(parent1, parent2, crossover_rate, len_cities):
+    if random.random() < crossover_rate:
+        point = random.randint(0, len_cities - 1)
+        child1 = parent1[1][:point]
+        child2 = parent2[1][:point]
+        child1 += [city for city in parent2[1] if city not in child1]
+        child2 += [city for city in parent1[1] if city not in child2]
+    else:
+        child1 = parent1[1].copy()
+        child2 = parent2[1].copy()
+    return child1, child2
 ```
-
-the idea is getting last half total character from parent1 and combine with first half total character from parent2 and vice versa. The full code of this process is like this
-
-```
-# crossover
-def crossover(parent, target, panjang_target):
-    child = {}
-    cp = round(len(list(parent)[0])/2)
-    for i in range(2):
-        gen = list(parent)[i][:cp] + list(parent)[1-i][cp:]
-        genfitness = calculate_fitness(gen, target, panjang_target)
-        child[gen] = genfitness
-    return child
- ```
 
 ### 4. Mutation
 
 > mutation process is genetic operator used to maintain genetic diversity from one generation of a population of genetic algorithm chromosomes to the next
 
-the idea is we need to choose mutation rate, and looping for every character in a gen to get random number. If the random number is bigger than mutation rate, in that looping character will be replaced with random character
+In the mutation step, we randomly swap two cities in the route to introduce variety in the population, much like how characters are randomly altered in the text matching GA.
 
 ```
-# mutation
-def mutation(child, target, mutation_rate, panjang_target):
-    mutant = {}
-    for i in range(len(child)):     
-        data = list(list(child)[i])
-        for j in range(len(data)):
-            if np.random.rand(1) <= mutation_rate:
-                ch = chr(np.random.randint(32, 126))
-                data[j] = ch
-        gen = ''.join(data)
-        genfitness = calculate_fitness(gen, target, panjang_target)
-        mutant[gen] = genfitness
-    return mutant
+# Randomly swap two cities in the tour based on the mutation rate
+def mutate(tour, mutation_rate, len_cities):
+    if random.random() < mutation_rate:
+        idx1, idx2 = random.sample(range(len_cities), 2)
+        # Swap two cities
+        tour[idx1], tour[idx2] = tour[idx2], tour[idx1]
 ```
 
 ### 5. Evaluation
 
 > evaluation process is check what fitness value
 
-if the fitness of mutation process is equal to 100% so the guess is same with target word and the process will be stoped
+Just like in the text GA where fitness was calculated to check if the guessed string matched the target, here we calculate the total distance of the mutated (or offspring) tours to evaluate their fitness.
 
 ```
-if bestfitness(mutant) >= 100:
-        break
+# Calculate the total distance (fitness) of a tour
+def calculate_total_distance(tour):
+    total_distance = 0
+    for i in range(len(tour) - 1):
+        total_distance += calculate_distance(tour[i], tour[i + 1])
+    total_distance += calculate_distance(tour[-1], tour[0])  # Return to the starting city
+    return total_distance
 ```
 
 ### 6. Regeneration of Population
 
 > regeneration is insert gen of mutation process into a population
 
-in this process, the worst gen in a population will be dropped and replace with new gen from mutation process
+After creating new offspring through crossover and mutation, we insert these new individuals into the population, replacing the worst-performing ones. This keeps the population evolving towards better solutions.
 
 ```
-# create new population with new best gen
-def regeneration(mutant, populasi):
-    for i in range(len(mutant)):
-        bad_gen = min(populasi, key=populasi.get)
-        del populasi[bad_gen]
-    populasi.update(mutant)
-    return populasi
+# Evolve the population by generating offspring and replacing the least fit
+def evolve_population(population, len_cities, selection_size, mutation_rate, crossover_rate, target_distance, max_generations=150):
+    generation_number = 0
+    for _ in range(max_generations):
+        # Keep the two best routes from the current population
+        new_population = sorted(population)[:2]  
+        while len(new_population) < len(population):
+            # Select parents via tournament selection
+            parent1 = tournament_selection(population, selection_size)
+            parent2 = tournament_selection(population, selection_size)
+            # Generate offspring via crossover
+            child1, child2 = crossover(parent1, parent2, crossover_rate, len_cities)
+            # Mutate the offspring
+            mutate(child1, mutation_rate, len_cities)
+            mutate(child2, mutation_rate, len_cities)
+            # Add the new offspring to the population
+            new_population.append((calculate_total_distance(child1), child1))
+            new_population.append((calculate_total_distance(child2), child2))
+        # Replace the old population with the new one
+        population = new_population
+        generation_number += 1
+
+        # Check if the target distance is reached
+        if min(population, key=lambda x: x[0])[0] < target_distance:
+            break
+    return min(population, key=lambda x: x[0]), generation_number
 ```
