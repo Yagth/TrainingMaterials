@@ -12,121 +12,90 @@ from typing import Callable, Dict, List, Optional, Tuple
 from collections import namedtuple
 from random import choices, randint, random, randrange,sample
 from itertools import permutations
+import matplotlib.pyplot as plt
 
-Distances = Dict[Tuple[int,int],int]
+City = namedtuple("City", ("name", "x", "y"))
+firstSet = [
+    City("Nazret", 10, 32),
+    City("Gambela", 12, 29),
+    City("Dessie", 14, 30),
+    City("Bishoftu", 16, 34),
+    City("Mendi", 18, 31),
+    City("Shashemene", 20, 36),
+    City("Harar", 22, 28),
+    City("Asella", 24, 33),
+    City("Negele Boran", 26, 34),
+    City("Sodo", 28, 35),
+    City("Woldiya", 30, 30),
+    City("Kibre Mengist", 32, 31),
+    City("Adama", 34, 37),
+    City("Jijiga", 36, 29),
+    City("Dembidolo", 38, 36),
+    City("Gore", 40, 32),
+    City("Bonga", 42, 30),
+    City("Debre Birhan", 44, 31),
+    City("Bati", 46, 33),
+    City("Mekele", 48, 34),
+]
+cities2 = [i for i in range(len(firstSet))]
 
-distances = {
-    (1, 2): 10,
-    (1, 3): 15,
-    (1, 4): 20,
-    (2, 3): 35,
-    (2, 4): 25,
-    (3, 4): 30
-}
-cities = [1,2,3,4]
-cities2 = [1,2,3,4,5,6,7,8,9,10]
-distances2 = {
-    (1, 2): 100,  # Addis Ababa to Dire Dawa
-    (1, 3): 25,  # Addis Ababa to Hawassa
-    (1, 4): 40,  # Addis Ababa to Gondar
-    (1, 5): 55,  # Addis Ababa to Bahir Dar
-    (1, 6): 80,  # Addis Ababa to Jimma
-    (1, 7): 65,  # Addis Ababa to Axum
-    (1, 8): 35,  # Addis Ababa to Debre Markos
-    (1, 9): 70,  # Addis Ababa to Arba Minch
-    (1, 10): 90,  # Addis Ababa to Mekelle
-    (2, 3): 80,  # Dire Dawa to Hawassa
-    (2, 4): 120,  # Dire Dawa to Gondar
-    (2, 5): 135,  # Dire Dawa to Bahir Dar
-    (2, 6): 100,  # Dire Dawa to Jimma
-    (2, 7): 145,  # Dire Dawa to Axum
-    (2, 8): 110,  # Dire Dawa to Debre Markos
-    (2, 9): 150,  # Dire Dawa to Arba Minch
-    (2, 10): 130,  # Dire Dawa to Mekelle
-    (3, 4): 60,  # Hawassa to Gondar
-    (3, 5): 75,  # Hawassa to Bahir Dar
-    (3, 6): 40,  # Hawassa to Jimma
-    (3, 7): 105,  # Hawassa to Axum
-    (3, 8): 30,  # Hawassa to Debre Markos
-    (3, 9): 80,  # Hawassa to Arba Minch
-    (3, 10): 110,  # Hawassa to Mekelle
-    (4, 5): 15,  # Gondar to Bahir Dar
-    (4, 6): 100,  # Gondar to Jimma
-    (4, 7): 120,  # Gondar to Axum
-    (4, 8): 80,  # Gondar to Debre Markos
-    (4, 9): 150,  # Gondar to Arba Minch
-    (4, 10): 130,  # Gondar to Mekelle
-    (5, 6): 80,  # Bahir Dar to Jimma
-    (5, 7): 100,  # Bahir Dar to Axum
-    (5, 8): 60,  # Bahir Dar to Debre Markos
-    (5, 9): 130,  # Bahir Dar to Arba Minch
-    (5, 10): 110,  # Bahir Dar to Mekelle
-    (6, 7): 120,  # Jimma to Axum
-    (6, 8): 70,  # Jimma to Debre Markos
-    (6, 9): 80,  # Jimma to Arba Minch
-    (6, 10): 100,  # Jimma to Mekelle
-    (7, 8): 100,  # Axum to Debre Markos
-    (7, 9): 180,  # Axum to Arba Minch
-    (7, 10): 30,  # Axum to Mekelle
-    (8, 9): 100,  # Debre Markos to Arba Minch
-    (8, 10): 80,  # Debre Markos to Mekelle
-    (9, 10): 120  # Arba Minch to Mekelle
-}
 population_limit = 50
 
-def get_distance(city1:int, city2:int, distances:Distances)->int:
-    if (city1, city2) in distances:
-        return distances[(city1, city2)]
-    elif (city2, city1) in distances:
-        return distances[(city2, city1)]
-    else:
-        return math.inf
-def generate_gnome(length: int) -> Genome:
-    return choices([0, 1], k=length)
+def get_distance(city1:int, city2:int, cities:List[City])->float:
+    if cities[city1].name == cities[city2].name:
+       return math.inf
+    return round(math.sqrt((cities[city1].x - cities[city2].x)**2 + (cities[city1].y - cities[city2].y)**2),2)
+
 def generate_population(cities: Genome, population_limit: int) -> Population:
-    all_permutations = list(permutations(cities))
+    n = len(cities)
     
-    # If the number of desired permutations exceeds the total number of permutations
-    if population_limit > len(all_permutations):
-        return all_permutations
-    # Randomly select the desired number of permutations
-    return sample(all_permutations, population_limit)
+    # Validate that the population limit does not exceed the number of unique permutations
+    if population_limit > math.factorial(n):
+        raise ValueError("Population limit exceeds the number of unique permutations.")
+
+    # Generate a list to hold the unique populations
+    population = set()  # Using a set to avoid duplicates
+
+    while len(population) < population_limit:
+        # Generate a random array of unique indices
+        random_indices = sample(range(n), n)
+        # Create a new permutation based on the random indices
+        new_permutation = [cities[i] for i in random_indices]
+        population.add(tuple(new_permutation))  # Convert to tuple for set storage
+
+    return [list(item) for item in population] 
 def selection_pair(population: Population, fitness_func: FitnessFunc) -> Population:
     return choices(
         population=population, weights=[(1/fitness_func(gene)) for gene in population], k=2
     )
-def calculate_total_distance(order: Genome,distances:Distances) -> int:
-    distance =  sum(get_distance(order[n], order[n + 1],distances=distances) for n in range(len(order) - 1))
+def calculate_total_distance(order: Genome,cities:List[City]) -> float:
+    distance =  sum(get_distance(order[n], order[n + 1],cities=cities) for n in range(len(order) - 1))
     # Add the distance from the last city to the first
-    distance += get_distance(order[-1], order[0],distances=distances)
+    distance += get_distance(order[-1], order[0],cities=cities)
     return distance
 
-def fitness(order: Genome,distances:Distances,cities:Genome) -> int:
+def fitness(order: Genome,cities:List[City]) -> float:
+    """
+    The fitness function just measures the total distance between the cities in the order.
+    """
     if len(set(order)) != len(cities):
         return math.inf
-    return calculate_total_distance(order,distances)
+    return calculate_total_distance(order,cities=cities)
 def single_point_crossover(a: Genome, b: Genome) -> Tuple[Genome, Genome]:
     a=list(a)
     b=list(b)
     if len(a) != len(b):
         ValueError("Genomes a and b must be the same length")
-
     length = len(a)
     if length < 2:
         return a, b
-
     p = randint(1, length - 1)
     return a[:p] + b[p:], b[:p] + a[p:]
 
 def sort_population(population: Population, fitness_func: FitnessFunc) -> Population:
     return sorted(population, key=fitness_func, reverse=False)
 
-print("TRAVELLING SALESMAN PROBLEM")
-print("----------")
 
-def printer(order:Genome,distances:Distances):
-    distance = calculate_total_distance(order,distances=distances)
-    print(f"Order: {order} Distance: {distance}")
 def mutation(genome: Genome, num: int = 1, probability: float = 0.5) -> Genome:
     genome = list(genome)
     for _ in range(num):
@@ -139,75 +108,93 @@ def mutation(genome: Genome, num: int = 1, probability: float = 0.5) -> Genome:
             genome[index2] =val1
     return genome
 
-def print_problem_description(cities: List[int]):
-    """
-    Prints descriptive information about the Travelling Salesman Problem.
-    
-    Args:
-        cities (List[int]): A list of city IDs (or names) involved in the problem.
-    """
-    num_cities = len(cities)
-    possible_combinations = math.factorial(num_cities)
-    
-    print("Travelling Salesman Problem:")
-    print(f"Number of Cities: {num_cities}")
-    print(f"Possible Combinations (Orderings of Cities): {possible_combinations}")
-    print(f"The goal is to find the shortest route visiting all cities exactly once.\n")
-
-
-def print_generation_info(generation: int, best_order: Genome, distances: Dict[Tuple[int, int], int]):
-    """
-    Prints the generation number and the best genome (route) with its corresponding distance.
-    
-    Args:
-        generation (int): The current generation number in the genetic algorithm.
-        best_order (Genome): The best order (route) of cities found so far.
-        distances (Dict[Tuple[int, int], int]): The distance dictionary containing the distances between city pairs.
-    """
-    total_distance = calculate_total_distance(best_order, distances)
+def print_generation_info(generation: int, best_order: Genome, cities: List[City]):
+    total_distance = calculate_total_distance(best_order, cities=cities)
     
     print(f"Generation: {generation}")
-    print(f"Best Route: {best_order}")
     print(f"Total Distance: {total_distance}")
     print("-" * 40)
 
 
-def print_final_result(best_order: Genome, generation: int, distances: Dict[Tuple[int, int], int]):
-    """
-    Prints the final result after running the genetic algorithm.
-    
-    Args:
-        best_order (Genome): The best order (route) of cities found by the genetic algorithm.
-        generation (int): The generation number at which the solution was found.
-        distances (Dict[Tuple[int, int], int]): The distance dictionary containing distances between city pairs.
-    """
-    total_distance = calculate_total_distance(best_order, distances)
+def print_final_result(best_order: Genome, generation: int, cities:List[City]):
+    total_distance = calculate_total_distance(best_order, cities=cities)
     
     print("\nFinal Solution:")
-    print(f"Best Route: {best_order}")
+    print(f"Best Route:")
+    best_route_str = " -> ".join([cities[i].name for i in best_order])
+    print(f"Best Route: {best_route_str}")
     print(f"Total Distance: {total_distance}")
     print(f"Found in Generation: {generation}")
     print(f"Out of Possible Combinations: {math.factorial(len(best_order))}")
     print("=" * 40)
+
+def visualize_route1(cities: List[City], best_route: List[int], generation: int, total_distance: float):
+    """
+    Visualize the cities and the best route for the Travelling Salesman Problem, with generation and distance info below the graph.
+    Args:
+        cities (List[City]): List of cities with coordinates.
+        best_route (List[int]): List of indices representing the order of cities to visit.
+        generation (int): The generation number in the genetic algorithm.
+        total_distance (int): The total distance of the best route found.
+    """
+    # Extract the coordinates of the cities based on the best route
+    x_coords = [cities[i].x for i in best_route]
+    y_coords = [cities[i].y for i in best_route]
+
+    # Close the loop by adding the first city at the end to return to the start
+    x_coords.append(cities[best_route[0]].x)
+    y_coords.append(cities[best_route[0]].y)
+
+    # Create the plot
+    plt.figure(figsize=(8, 6))
+    
+    # Plot the cities
+    plt.scatter([city.x for city in cities], [city.y for city in cities], color="red")
+    
+    # Annotate the cities with names
+    for i, city in enumerate(cities):
+        plt.annotate(city.name, (city.x, city.y), textcoords="offset points", xytext=(0, 10), ha="center")
+    
+    # Plot the best route as a line connecting the cities
+    plt.plot(x_coords, y_coords, color="blue", linestyle='-', marker='o', markersize=5)
+
+    # Label the plot
+    plt.title("Best Route for the Travelling Salesman Problem")
+    plt.xlabel("X Coordinate")
+    plt.ylabel("Y Coordinate")
+
+    # Add text with details about the final solution
+    best_route_str = " -> ".join([cities[i].name for i in best_route])
+    text = (
+        f"Final Solution:\n"
+        f"Best Route: {best_route_str}\n"
+        f"Total Distance: {total_distance} km\n"
+        f"Found in Generation: {generation}\n"
+        f"Out of Possible Combinations: {math.factorial(len(best_route))}"
+    )
+
+    # Place the text below the graph using plt.figtext
+    plt.figtext(0.1, 0.01, text, wrap=True, horizontalalignment='left', fontsize=10)
+
+# Adjust the layout to make more space at the bottom for the text
+    plt.subplots_adjust(bottom=0.2)
+
+    # Show the plot
+    plt.grid(True)
+    plt.show()
+
+# Run the genetic algorithm
 def run_evolution(
     populate_func: PopulateFunc,
     fitness_func: FitnessFunc,
-    # fitness_limit: int,
     selection_func: SelectionFunc = selection_pair,
     crossover_func: CrossoverFunc = single_point_crossover,
     mutation_func: MutationFunc = mutation,
     generation_limit: int = 100,
-    # printer: Optional[PrinterFunc] = None,
 ) -> Tuple[Population, int]:
     population = populate_func()
     for i in range(generation_limit):
         population = sort_population(population, fitness_func)
-
-        # if printer is not None:
-        #     printer(population, i, fitness_func)
-        # if fitness_func(population[0]) >= fitness_limit:
-        #     break
-
         next_generation = population[0:2]
 
         for _ in range(int(len(population) / 2) - 1):
@@ -219,17 +206,20 @@ def run_evolution(
 
         population = next_generation
         if i % 50 == 0:
-            print_generation_info(i, population[0], distances2)
-
+            print_generation_info(i, population[0], firstSet)
     return population, i
+
+
+print("---------- TRAVELLING SALESMAN PROBLEM ----------")
 with timer():
     population, generation = run_evolution(
         partial(generate_population, cities=cities2, population_limit=population_limit),
-        fitness_func=partial(fitness, distances=distances2,cities=cities2),
+        fitness_func=partial(fitness,cities=firstSet),
         selection_func=selection_pair,
         crossover_func=single_point_crossover,
         generation_limit=500,
     )
-    print_final_result(population[0], generation, distances2)
-# print_problem_description(cities2)
-# print(f"{printer(population[0],distances2)},Generation no :{generation}, Possible Combination: {math.factorial(len(cities2))}")
+    print_final_result(population[0], generation, firstSet)
+
+visualize_route1(firstSet, population[0],generation=generation, total_distance=calculate_total_distance(population[0], firstSet))
+
