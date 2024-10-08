@@ -13,7 +13,8 @@ from collections import namedtuple
 from random import choices, randint, random, randrange,sample
 from itertools import permutations
 import matplotlib.pyplot as plt
-
+GENERATION_LIMIT = 500
+population_limit = 50
 City = namedtuple("City", ("name", "x", "y"))
 firstSet = [
     City("Nazret", 10, 32),
@@ -39,7 +40,6 @@ firstSet = [
 ]
 cities2 = [i for i in range(len(firstSet))]
 
-population_limit = 50
 
 def get_distance(city1:int, city2:int, cities:List[City])->float:
     if cities[city1].name == cities[city2].name:
@@ -120,10 +120,9 @@ def print_final_result(best_order: Genome, generation: int, cities:List[City]):
     total_distance = calculate_total_distance(best_order, cities=cities)
     
     print("\nFinal Solution:")
-    print(f"Best Route:")
     best_route_str = " -> ".join([cities[i].name for i in best_order])
     print(f"Best Route: {best_route_str}")
-    print(f"Total Distance: {total_distance}")
+    print(f"Total Distance: {total_distance} km")
     print(f"Found in Generation: {generation}")
     print(f"Out of Possible Combinations: {math.factorial(len(best_order))}")
     print("=" * 40)
@@ -217,7 +216,7 @@ with timer():
         fitness_func=partial(fitness,cities=firstSet),
         selection_func=selection_pair,
         crossover_func=single_point_crossover,
-        generation_limit=500,
+        generation_limit=GENERATION_LIMIT,
     )
     print_final_result(population[0], generation, firstSet)
 
