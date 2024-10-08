@@ -129,3 +129,6 @@ def evolve_population(population, len_cities, selection_size, mutation_rate, cro
             break
     return min(population, key=lambda x: x[0]), generation_number
 ```
+
+#### Conclusion
+This TSP code follows the same logic as the genetic algorithm for text matching. The process of initializing a population, selection, crossover, mutation, evaluation, and regeneration is the same, but instead of matching strings, we are finding the shortest route for the Traveling Salesman Problem.
