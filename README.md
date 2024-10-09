@@ -23,3 +23,9 @@ To get started with the projects, follow these steps:
 1. **Clone the repository**:
    ```bash
    git clone <repository-url>
+2. **Navigate to the project directory**:
+   ```bash
+   cd TrainingMaterials
+3. **change the branch**:
+   ```bash
+   git checkout gp-rediet
