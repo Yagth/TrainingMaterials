@@ -29,3 +29,5 @@ To get started with the projects, follow these steps:
 3. **change the branch**:
    ```bash
    git checkout gp-rediet
+4.**Run the respective scripts to execute the algorithms.**
+
