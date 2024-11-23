@@ -109,9 +109,9 @@
 ;; (= (isTrue $x) (if $x True (empty)))
 ;; (= (any $x) (not (== (collapse (isTrue (superpose (true)))) ())))
 
-;; !(any (True False) False)
-;; !(any (True False False True) False)
-;; !(any (False False False False False False False False False False False True False False True) False)
+;; !(any (True False))
+;; !(any (True False False True))
+;; !(any (False False False False False False False False False False False True False False True))
 
 
 ;; TODO: Tasks
