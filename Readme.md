@@ -1,0 +1,3 @@
+**Project Overview**
+
+I implemented various fundamental operations using MeTTa focusing on leveraging its non-deterministic capabilities for efficient and elegant solutions. Key functionalities include set operations (e.g., complement, symmetric difference, subset, and equivalence checks), a generic filter function, and an optimized any function for truthy evaluations. Additionally, the features like non-deterministic space operations, enabling the addition and removal of multiple atoms in parallel. These implementations are found in the non-determinstic-implementation.metta file
