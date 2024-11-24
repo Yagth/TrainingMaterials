@@ -2,13 +2,13 @@
 
 ;; Complement: returns all elements in B that are not in A
 (= (complement $a $b)
-   (subtraction (superpose $b) (superpose $a)))
+   (collapse(subtraction (superpose $b) (superpose $a))))
 
 ;; Symmetric Difference: (A - B) ∪ (B - A)
 (= (symmetric-difference $a $b)
-   (union
+   (collapse (union
       (subtraction (superpose $a) (superpose $b))
-      (subtraction (superpose $b) (superpose $a))))
+      (subtraction (superpose $b) (superpose $a)))))
 
 ;;Subset: Returns True if all elements of A are in B or (A n B)=A then A is a subset of B
 (= (subset $a $b)
@@ -26,7 +26,7 @@
 !(subset (A B E) (A B C D))  ; Output: False
 
 !(symmetric-difference (A B C) (C D E))  ; Output: (A B D E)
-!(complement (A) (A B C D))  ; Output: (B C D)
+!(complement (A B) (A B C D))  ; Output: (B C D)
 !(equivalent (A B C) (A B C))  ; Output: True
 !(equivalent (A B) (A C))  ; Output: False
 !(equivalent (A B) (A D))  ; Output: False
