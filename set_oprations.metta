@@ -31,4 +31,4 @@
 ;!(complement (1 2 3 4 5) (2 3)) ;; set1 - set2 (1 4 5)
 ;!(symmetric-difference (1 2 3) (3 4 5)) ;;  (set1 - set2) U (set2 - set1) (1 2 4 5)
 ;!(subset (2 3) (1 2 3 4)) ;; set1 ⊆ set2  True
-;!(equivalent (1 2 3) (3 2 1)) ;; set1 - set2 = () and set2 - set1 = () or (set1 ⊆ set2) and ((set2 ⊆ set1))
+;!(equivalent (1 2 3) (3 2 1)) ;; set1 - set2 = () and set2 - set1 = () or (set1 ⊆ set2) and ((set2 ⊆ set1)) True
