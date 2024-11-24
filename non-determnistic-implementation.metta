@@ -26,7 +26,7 @@
 !(subset (A B E) (A B C D))  ; Output: False
 
 !(symmetric-difference (A B C) (C D E))  ; Output: (A B D E)
-!(complement (A B) (A B C D))  ; Output: (B C D)
+!(complement (A B) (A B C D))  ; Output: (C D)
 !(equivalent (A B C) (A B C))  ; Output: True
 !(equivalent (A B) (A C))  ; Output: False
 !(equivalent (A B) (A D))  ; Output: False
@@ -37,11 +37,12 @@
 
 ;; Generic Filter function that applies a predicate to a list
 (= (filter $list $predicate)
-   ($predicate (superpose $list)))
+   (collapse($predicate (superpose $list))))
 
 ; Example: Increment each number in a list by 1 using a filter function
 (= (increment $x) (+ $x 1))
 !(filter (1 2 3 4) increment)  ; Output: (2 3 4 5)
+
 
 
 ;; --- Optimized any Function ---
@@ -88,6 +89,7 @@
 !(match &x $x $x) ;;output [(A 1), (B 2), (C 3), (D 4), (B 1), (A C 2), (A D 3)]
 !(remove-atoms &x ((A 1) (B 2) (C 3) (D 4) (B 1) (A C 2) (A D 3)))
 !(match &x $x $x) ;;output []
+
 
 
 
