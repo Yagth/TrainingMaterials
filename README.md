@@ -186,7 +186,7 @@ This file combines exercises 5 and 6 into a single document.
   - **Parameters**:
     - `$space`: The space from which the atoms are removed.
     - `$atoms`: The atoms to be removed.
-  - **Returns**: None
+  - **Returns**: ()
 
 ### Tests
 
@@ -205,7 +205,7 @@ This file combines exercises 5 and 6 into a single document.
   - **Parameters**:
     - `$space`: The space from which the atoms are removed.
     - `$atoms`: The atoms to be removed.
-  - **Returns**: None
+  - **Returns**: ()
 
 ### Tests
 
