@@ -43,18 +43,41 @@
 (= (increment $x) (+ $x 1))
 !(filter (1 2 3 4) increment)  ; Output: (2 3 4 5)
 
+(= (even $x)
+   (if (== (% $x 2) 0)
+       $x                           
+       (empty)))
+!(filter (1 2 3 4) even)  ; Output: (2  4)
 
 
-;; --- Optimized any Function ---
+;; --- Optimized any and any' Function ---
+
+;; Optimized any' function to use short-circuit evaluation, avoiding unnecessary traversal
+(= (any' $list)
+   (if (== $list ())
+       False                        
+       (or (car-atom $list)         
+           (any' (cdr-atom $list)))))
+
+
+!(any' (False False)) ;;output False
+!(any' (True False False True) ) ;;output True
+!(any' (False False False False False False False False False False False True False False True)) ;;output False
+
 
 ;; isTrue: Helper function to check if a value is truthy
+
+
+
 (= (isTrue $x) (if $x True (empty)))
 
 ;; any: Returns True if any element in the list is truthy, otherwise False 
 ;;the previous implementaion had a problem it was returning True every time i also fixed that
+
 (= (any $x) (not (== (collapse (isTrue (superpose $x))) ())))
 
 ; Example Usage for any function:
+
 
 !(any (False False))  ;; Output: False
 !(any (True False False True))  ;; Output: True
@@ -89,6 +112,8 @@
 !(match &x $x $x) ;;output [(A 1), (B 2), (C 3), (D 4), (B 1), (A C 2), (A D 3)]
 !(remove-atoms &x ((A 1) (B 2) (C 3) (D 4) (B 1) (A C 2) (A D 3)))
 !(match &x $x $x) ;;output []
+
+
 
 
 
