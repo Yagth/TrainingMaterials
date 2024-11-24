@@ -64,10 +64,8 @@
 !(any' (True False False True) ) ;;output True
 !(any' (False False False False False False False False False False False True False False True)) ;;output False
 
-
+;;any function optimization
 ;; isTrue: Helper function to check if a value is truthy
-
-
 
 (= (isTrue $x) (if $x True (empty)))
 
