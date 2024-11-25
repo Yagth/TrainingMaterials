@@ -14,12 +14,11 @@
     (== (collapse (subtraction (superpose $list1) (superpose $list2))) ()))
 
 Equivalent: Checks if two sets contain exactly the same elements.  
-  (: equivalent (-> (List $t) (List $t) Bool))
+(: equivalent (-> (List $t) (List $t) Bool))
 (= (equivalent $list1 $list2)
     (and 
         (== (collapse (subtraction (superpose $list1) (superpose $list2))) ())
         (== (collapse (subtraction (superpose $list2) (superpose $list1))) ())))
-
 
 ;;testcases
 !(complement (1 2 3 4) (2 3))

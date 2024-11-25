@@ -10,7 +10,7 @@
 ;;Any: Checks if at least one element in a list of booleans is True, using the intersection of True with the list.
 (: any (-> (List Bool) Bool))
 (= (any $list)
-    (not (== (collapse (intersection (superpose (True)) (superpose $list))) ())))
+   (not (== (collapse (intersection (superpose (True)) (superpose $list))) ())))
 
 ;;isMember: Verifies if a specific element exists in a list by checking the intersection of the element with the list.
 (= (isMember $x $list)
